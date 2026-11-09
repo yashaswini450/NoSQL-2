@@ -1,0 +1,6 @@
+input=Wikipedia-50-ARTICLES
+documents=50
+input_bytes=717789
+document_frequency_seconds=3.73
+inverted_index_seconds=2.41
+timing=wall clock of each 'hadoop jar' command (JVM + job startup, input read, output write; standalone mode, no HDFS transfer)

@@ -1,0 +1,27 @@
+PASS  doc_count.txt N=10000 equals number of article files (10000)
+PASS  df_all.tsv has 524390 rows and no duplicate terms
+PASS  every DF is between 1 and N
+PASS  top100_df.tsv (100 rows) equals top 100 of df_all.tsv by (DF desc, TERM asc)
+INFO  boundary tie: DF=4832 at rank 100 is shared by 1 term(s); 1 included by TERM asc, 0 excluded
+PASS  inverted_index.tsv has exactly the 100 top terms
+PASS  #postings == DF for every term
+PASS  no duplicate DOC_ID within a posting list
+PASS  every TF >= 1
+PASS  every DOC_ID is a real article
+PASS  postings sorted by DOC_ID ascending
+PASS  raw token 'american': all 5446 docs containing it are indexed with TF >= raw count
+PASS  raw token 'area': all 4344 docs containing it are indexed with TF >= raw count
+PASS  raw token 'base': all 1441 docs containing it are indexed with TF >= raw count
+PASS  raw token 'both': all 5453 docs containing it are indexed with TF >= raw count
+PASS  raw token 'call': all 1304 docs containing it are indexed with TF >= raw count
+PASS  raw token 'citi': all 5 docs containing it are indexed with TF >= raw count
+PASS  raw token 'extern': all 1 docs containing it are indexed with TF >= raw count
+PASS  raw token 'first': all 7689 docs containing it are indexed with TF >= raw count
+PASS  raw token 'follow': all 947 docs containing it are indexed with TF >= raw count
+PASS  raw token 'form': all 3532 docs containing it are indexed with TF >= raw count
+PASS  raw token 'found': all 3766 docs containing it are indexed with TF >= raw count
+PASS  raw token 'gener': all 6 docs containing it are indexed with TF >= raw count
+INFO  raw-text cross-check run for 12 term(s)
+INFO  top-100 terms spelled like a stop word (stems of non-stop words): none
+
+RESULT: ALL CHECKS PASSED

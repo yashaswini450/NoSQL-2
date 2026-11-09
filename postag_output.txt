@@ -1,0 +1,29 @@
+Loading POS Tagger model ... done (0.091s)
+
+
+Can_AUX anyone_PRON help_VERB me_PRON dig_VERB through_ADP OpenNLP_PROPN '_PUNCT s_NOUN documentation_NOUN ?_PUNCT
+AUX
+PRON
+VERB
+PRON
+VERB
+ADP
+PROPN
+PUNCT
+NOUN
+NOUN
+PUNCT
+
+
+Steammed words:
+Can
+anyon
+help
+me
+dig
+through
+OpenNLP
+'
+s
+document
+?

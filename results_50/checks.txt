@@ -1,0 +1,21 @@
+PASS  doc_count.txt N=50 equals number of article files (50)
+PASS  df_all.tsv has 12776 rows and no duplicate terms
+PASS  every DF is between 1 and N
+PASS  top100_df.tsv (100 rows) equals top 100 of df_all.tsv by (DF desc, TERM asc)
+INFO  boundary tie: DF=24 at rank 100 is shared by 13 term(s); 1 included by TERM asc, 12 excluded
+PASS  inverted_index.tsv has exactly the 100 top terms
+PASS  #postings == DF for every term
+PASS  no duplicate DOC_ID within a posting list
+PASS  every TF >= 1
+PASS  every DOC_ID is a real article
+PASS  postings sorted by DOC_ID ascending
+PASS  raw token 'american': all 28 docs containing it are indexed with TF >= raw count
+PASS  raw token 'area': all 25 docs containing it are indexed with TF >= raw count
+PASS  raw token 'both': all 25 docs containing it are indexed with TF >= raw count
+PASS  raw token 'call': all 4 docs containing it are indexed with TF >= raw count
+PASS  raw token 'first': all 40 docs containing it are indexed with TF >= raw count
+PASS  raw token 'follow': all 3 docs containing it are indexed with TF >= raw count
+INFO  raw-text cross-check run for 6 term(s)
+INFO  top-100 terms spelled like a stop word (stems of non-stop words): none
+
+RESULT: ALL CHECKS PASSED
