@@ -1,0 +1,86 @@
+PROBLEM 2 - Document Indexing and Query-Based Retrieval
+Run instructions for Part 2(a) (DF + inverted index) and Part 2(b) (query retrieval).
+
+================================================================================
+ENVIRONMENT
+================================================================================
+ OS        : Windows 11 + WSL2 Ubuntu (commands below are run inside WSL)
+ Java      : OpenJDK 11
+ Hadoop    : 3.4.3, standalone (local) mode, LocalJobRunner, local filesystem (no HDFS/YARN)
+ Libraries : opennlp-tools-1.9.3.jar (PorterStemmer) - keep in the working folder, not committed
+ Inputs    : stopwords.txt, Wikipedia-EN-20120601_ARTICLES.tar.gz (N = 10000 articles),
+             Wikipedia-50-ARTICLES.tar (test set, N = 50)
+ Setup     : source ~/hadoop-env/env.sh   (any shell where `hadoop` and `java` work is fine;
+             it must export HADOOP_HOME/JAVA_HOME and put `hadoop` on PATH)
+
+Shared preprocessing (identical in 2(a) and 2(b), implemented once in TextPreprocessor.java):
+   lowercase -> split on [^a-z0-9]+ -> drop empty tokens -> drop stop words (raw token,
+   before stemming) -> PorterStemmer.stem -> drop empty stems.
+Document ID = article file name without ".txt" (stable integer ID).
+
+================================================================================
+DATASET PREPARATION
+================================================================================
+ tar -xf Wikipedia-50-ARTICLES.tar
+ tar -xf Wikipedia-EN-20120601_ARTICLES.tar.gz     # despite the .gz name it is a plain tar
+
+================================================================================
+PART 2(a)  -  DF, Top-100 terms, inverted index
+================================================================================
+ One-shot script (compiles, runs DF -> Top-100 -> InvertedIndex, copies outputs):
+   ./run_problem2a.sh Wikipedia-50-ARTICLES            results_50
+   ./run_problem2a.sh Wikipedia-EN-20120601_ARTICLES   results_full
+   python3 check_problem2a.py results_full Wikipedia-EN-20120601_ARTICLES stopwords.txt
+
+ Equivalent manual commands:
+   export HADOOP_CLASSPATH=$PWD/opennlp-tools-1.9.3.jar
+   mkdir classes
+   javac -classpath "$(hadoop classpath):opennlp-tools-1.9.3.jar" -d classes \
+         TextPreprocessor.java WholeDocumentInputFormat.java DocumentFrequency.java InvertedIndex.java
+   jar cf problem2_index.jar -C classes .
+   hadoop jar problem2_index.jar DocumentFrequency -libjars opennlp-tools-1.9.3.jar \
+         stopwords.txt Wikipedia-EN-20120601_ARTICLES out_df
+   hadoop jar problem2_index.jar InvertedIndex -libjars opennlp-tools-1.9.3.jar \
+         stopwords.txt top100_df.tsv Wikipedia-EN-20120601_ARTICLES out_index
+
+ Outputs (also copied to results_full/ and results_50/):
+   df_all.tsv            TERM<TAB>DF           (all distinct stemmed non-stop terms, one file)
+   top100_df.tsv         TERM<TAB>DF           (100 rows; DF desc, ties by TERM asc)
+   inverted_index.tsv    TERM<TAB>DOC_ID:TF,DOC_ID:TF,...   (100 rows, postings by DOC_ID numeric asc)
+   doc_count.txt         N
+ Configuration: 1 reducer per job; split.maxsize = 64 MB; Top-K = 100 (-D p2.topk=...).
+
+================================================================================
+PART 2(b)  -  Query-based retrieval (TF-IDF)
+================================================================================
+ Inputs  : <results_dir>/inverted_index.tsv  (MapReduce input)
+           <results_dir>/top100_df.tsv       (DF values, shipped via DistributedCache)
+           <results_dir>/doc_count.txt       (N, read by the run script)
+           stopwords.txt
+ Run (from a folder containing stopwords.txt and opennlp-tools-1.9.3.jar):
+   ./run_query.sh <results_dir> "<query string>" [output_dir]
+   e.g.  ./run_query.sh results_full "history united states" output_query
+ which does:
+   javac -cp "$(hadoop classpath):opennlp-tools-1.9.3.jar" -d classes_query TextPreprocessor.java QueryRetrieval.java
+   jar cf problem2_query.jar -C classes_query .
+   export HADOOP_CLASSPATH=$PWD/opennlp-tools-1.9.3.jar
+   hadoop jar problem2_query.jar QueryRetrieval -libjars opennlp-tools-1.9.3.jar \
+       stopwords.txt results_full/top100_df.tsv results_full/inverted_index.tsv output_query 10000 "<query>"
+ Output  : output_query/part-r-00000, TSV  RANK<TAB>DOC_ID<TAB>MATCHED_TERMS<TAB>SCORE
+           (top 10, score printed with 6 decimals; all matching docs if fewer than 10).
+
+ Definitions
+   IDF(t)  = ln( N / DF(t) + 1 )   (natural log; DF(t) read from top100_df.tsv)
+   S(D,Q)  = sum over t in Q ∩ D of TF(t,D) * IDF(t)
+   Q       = SET of stemmed, non-stop query terms: repeated query terms are collapsed (counted once).
+   Ranking = score descending; ties -> DOC_ID ascending, compared NUMERICALLY.
+   Query terms that are stop words vanish in preprocessing; terms not among the indexed top-100
+   terms are reported on stderr ("Ignored") and skipped. If no usable term remains, the program
+   prints a message, runs no job and writes no output. If terms are usable but no document
+   contains them the output file is empty.
+   Job counters: MATCHING_DOCS (number of docs scored), DF_MISMATCH (index postings count vs DF
+   file; absent = 0 = consistent).
+
+ Independent check (no Hadoop; pass the stemmed terms printed by the driver as "Terms used for scoring"):
+   python3 verify_retrieval.py results_full "histori,state,unit" --explain 3
+   (stdout must equal output_query/part-r-00000; stderr shows DF, IDF and TF x IDF per document)

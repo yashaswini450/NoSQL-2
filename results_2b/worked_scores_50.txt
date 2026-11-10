@@ -1,0 +1,7 @@
+# N=50  histori: DF=34  IDF=ln(50/34+1)=0.904456
+# N=50  state: DF=31  IDF=ln(50/31+1)=0.960462
+# N=50  unit: DF=32  IDF=ln(50/32+1)=0.940983
+# matching documents: 43
+#   doc 1338: 1x0.904456[histori] + 34x0.960462[state] + 14x0.940983[unit] = 46.733929
+#   doc 21197: 15x0.904456[histori] + 6x0.960462[state] + 11x0.940983[unit] = 29.680433
+#   doc 113147: 20x0.904456[histori] + 11x0.960462[state] = 28.654207
