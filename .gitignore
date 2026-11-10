@@ -1,0 +1,24 @@
+# Datasets and archives (Critical: do NOT push large files to GitHub)
+*.tar
+*.tar.gz
+*.bin
+Wikipedia-50-ARTICLES/
+Wikipedia-EN-*/
+subsets/
+subset_*/
+
+# Compiled Java binaries and libraries
+*.class
+*.jar
+
+# Hadoop job output directories
+output*/
+*_out/
+
+# System and IDE files
+.DS_Store
+.idea/
+.vscode/
+*.iml
+
+
