@@ -1,0 +1,110 @@
+DAS 839 NoSQL Systems, Assignment 2
+Problem 1 | Word association and scalability
+
+Environment
+-----------
+The benchmark used Ubuntu on WSL2 (Linux 6.6.87.2), Corretto OpenJDK 11.0.33
+and Apache Hadoop 3.4.3 in standalone mode. WSL saw 16 logical CPUs on an AMD
+Ryzen 7 7735HS and 7.4 GiB of RAM. All jobs used a 1 GiB maximum Java heap, the
+local filesystem, one reducer and the same Hadoop configuration. Python 3
+runs the subset and benchmark scripts. Matplotlib makes the plot.
+
+Place the Person 2 files in the root of NoSQL-2, alongside Top50Words.java,
+WordAssociationPairs.java and stopwords.txt from main. The source used in the
+benchmark was main commit 8b6e5a4beca1ddf9700d69a6b1302b7a0b236681.
+In Ubuntu or WSL, make java, javac and hadoop available on PATH and run these
+commands from the repository root. Use a new output_problem1 directory.
+
+    export HADOOP_HEAPSIZE_MAX=1g
+    mkdir -p output_problem1/classes
+    javac -cp "$(hadoop classpath)" -d output_problem1/classes \
+        Top50Words.java WordAssociationPairs.java WordAssociationStripes.java
+    jar cf output_problem1/problem1.jar -C output_problem1/classes .
+    JAR=output_problem1/problem1.jar
+
+Prepare the data
+----------------
+Replace the archive path with the location of the official LMS download.
+
+    tar -xf /path/to/Wikipedia-EN-20120601_ARTICLES.tar.gz -C output_problem1
+    ARTICLES=output_problem1/Wikipedia-EN-20120601_ARTICLES
+    SUBSETS=output_problem1/subsets
+    bash prepare_subsets.sh "$ARTICLES" "$SUBSETS"
+
+The script sorts .txt article filenames by byte order and takes the first
+floor(N * percent / 100) files. This makes the 10, 20, 40, 80 and 100 percent
+subsets nested. It writes the selected articles in order into about 16 MiB
+text shards to avoid creating a separate map task for each small article.
+It adds a newline where needed to keep the final line of one article separate
+from the first line of the next article. No window crosses a line boundary.
+subsets.tsv records article counts, original bytes and actual Hadoop input
+bytes, including added newlines.
+
+Problem 1(a) and 1(b)
+--------------------
+Generate a single vocabulary on the entire corpus, then reuse it for every
+run. The repository already contains Yashaswini's full-corpus top50_words.tsv.
+To reproduce it, run the first command and use the resulting TSV below.
+
+    hadoop jar "$JAR" Top50Words stopwords.txt "$SUBSETS/pct-100" \
+        output_problem1/top50 50
+    cp output_problem1/top50/part-r-00000 output_problem1/top50_words.tsv
+    TOP50=output_problem1/top50_words.tsv
+    diff -u <(tr -d '\r' < top50_words.tsv) "$TOP50"
+
+    hadoop jar "$JAR" WordAssociationPairs stopwords.txt "$TOP50" \
+        "$SUBSETS/pct-100" output_problem1/pairs false 2
+
+Problem 1(c)
+------------
+    hadoop jar "$JAR" WordAssociationStripes stopwords.txt "$TOP50" \
+        "$SUBSETS/pct-100" output_problem1/stripes true
+    diff -u output_problem1/pairs/part-r-00000 output_problem1/stripes/part-r-00000
+
+Pairs and Stripes both lowercase each line, split on non-ASCII-alphanumeric
+characters and remove stop words. A window reaches two filtered positions
+to either side of a word. Non-vocabulary tokens keep their positions. Each
+ordered association has two distinct vocabulary words. This matches Pairs
+and excludes self-associations from both counts and denominators.
+
+The Stripes mapper builds a small map of neighbor counts for each focal word
+occurrence. With aggregation off it emits each nonempty stripe immediately.
+With aggregation on it stores one stripe per word for the whole input split
+and writes them in cleanup. Its state is bounded by the 50-word vocabulary.
+It emits one stripe per key per mapper, so a combiner would have nothing
+additional to merge. Pairs with aggregation uses its in-mapper counts and
+Hadoop combiner.
+The reducer adds the stripes for each focal word, computes the total over
+all neighbors, then emits the five highest counts. Ties sort by neighbor
+word. Each TSV row contains focal word, neighbor, count and count divided by
+the total, rounded to six decimal places.
+
+Problem 1(d)
+------------
+    bash run_scalability.sh "$SUBSETS" stopwords.txt "$TOP50" "$JAR" \
+        output_problem1/benchmark
+    python3 plot_scalability.py output_problem1/benchmark/scalability_results.csv \
+        output_problem1/benchmark/scalability.png
+
+The script runs Pairs and Stripes with aggregation off and on, one job at a
+time. It runs three trials at 10%, 40% and 100%, and one at 20% and 80%.
+All runs at a given input size must produce identical TSVs. Every invocation
+gets a separate output directory and log. The jobs launch from the benchmark
+directory so a local file cannot shadow the provided vocabulary in Hadoop's
+distributed cache. The script writes every trial to
+scalability_runs.csv, the median by configuration and size to
+scalability_results.csv, and the 100% Stripes output to stripes_top5.tsv.
+
+Wall-clock time starts immediately before launching the Hadoop job and ends
+when it exits. It includes JVM startup, the Hadoop job and writing output.
+Downloading, extracting, making subsets and compiling are outside the timer.
+Standalone mode has no HDFS transfer. Map output records and Map output bytes
+are the mapper-emission counters. A combiner's effect on shuffled bytes can
+differ from its effect on these counters.
+
+The measured jobs used Hadoop's RunJar launcher with Java -Xmx1g and the
+3.4.3 client API/runtime jars from share/hadoop/client on the classpath, plus
+etc/hadoop and commons-logging, SLF4J and reload4j from share/hadoop/common/lib.
+The same launcher and configuration were used for all configurations. The
+standard hadoop jar command above runs the same jobs and may have different
+launcher overhead. No jobs ran in parallel.

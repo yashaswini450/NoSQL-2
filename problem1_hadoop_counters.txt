@@ -1,0 +1,81 @@
+Hadoop 3.4.3 job counter excerpts | Full 10,000-article corpus | Trial 1
+
+Pairs-NoAgg
+-----------
+		Map input records=10000
+		Map output records=1540824
+		Map output bytes=24567766
+		Map output materialized bytes=27649474
+		Input split bytes=2180
+		Combine input records=0
+		Combine output records=0
+		Reduce input groups=2428
+		Reduce shuffle bytes=27649474
+		Reduce input records=1540824
+		Reduce output records=250
+		Spilled Records=3081648
+		Shuffled Maps =10
+		Failed Shuffles=0
+		Merged Map outputs=10
+		GC time elapsed (ms)=137
+		Total committed heap usage (bytes)=2600468480
+
+Pairs-Agg
+---------
+		Map input records=10000
+		Map output records=23526
+		Map output bytes=392606
+		Map output materialized bytes=439718
+		Input split bytes=2180
+		Combine input records=23526
+		Combine output records=23526
+		Reduce input groups=2428
+		Reduce shuffle bytes=439718
+		Reduce input records=23526
+		Reduce output records=250
+		Spilled Records=47052
+		Shuffled Maps =10
+		Failed Shuffles=0
+		Merged Map outputs=10
+		GC time elapsed (ms)=129
+		Total committed heap usage (bytes)=2664431616
+
+Stripes-NoAgg
+-------------
+		Map input records=10000
+		Map output records=1169590
+		Map output bytes=31272291
+		Map output materialized bytes=33611531
+		Input split bytes=2180
+		Combine input records=0
+		Combine output records=0
+		Reduce input groups=50
+		Reduce shuffle bytes=33611531
+		Reduce input records=1169590
+		Reduce output records=250
+		Spilled Records=2339180
+		Shuffled Maps =10
+		Failed Shuffles=0
+		Merged Map outputs=10
+		GC time elapsed (ms)=188
+		Total committed heap usage (bytes)=2624585728
+
+Stripes-Agg
+-----------
+		Map input records=10000
+		Map output records=500
+		Map output bytes=342149
+		Map output materialized bytes=344203
+		Input split bytes=2180
+		Combine input records=0
+		Combine output records=0
+		Reduce input groups=50
+		Reduce shuffle bytes=344203
+		Reduce input records=500
+		Reduce output records=250
+		Spilled Records=1000
+		Shuffled Maps =10
+		Failed Shuffles=0
+		Merged Map outputs=10
+		GC time elapsed (ms)=135
+		Total committed heap usage (bytes)=2606759936
