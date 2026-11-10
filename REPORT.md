@@ -1,7 +1,7 @@
 # DAS 839 NoSQL Systems — Assignment 2 Report
 
 > Draft status: Problem 2 sections are written from real runs. Parts marked **TODO (P1/P2)** wait for Person 1/2 results.
-> The query below, "history united states", is **provisional** until the instructor's query is confirmed.
+> No instructor-supplied query had been announced when this was written, so we used our own multi-term query "history united states". The pipeline accepts any query; rerun `./run_query.sh results_full "<query>"` if one is announced.
 
 ## 1. Environment and setup
 
@@ -84,7 +84,7 @@ TODO (P1/P2): mapper/reducer logic, pseudocode, pair/stripe conventions, local a
 ## 3. Correctness checks
 
 ### 3.1 Problem 2(b)
-Provisional query **Q = "history united states"** → stems `{histori, state, unit}` ("united states" is not a
+Query used (chosen by us; no instructor query announced) **Q = "history united states"** → stems `{histori, state, unit}` ("united states" is not a
 stop-word phrase; none of the three words is in `stopwords.txt`). N = 10,000.
 
 | Term | DF (`top100_df.tsv`) | IDF = ln(10000/DF + 1) |
@@ -165,5 +165,5 @@ TODO at the end: paste both files verbatim here.
   index and query together.
 - Score uses raw TF with no length normalisation, so long documents dominate (§3.1).
 - All runs are standalone-mode on one machine; no HDFS/YARN overheads were measured.
-- The query used is provisional until the instructor's query is confirmed.
+- No instructor-supplied query was available; results use our own query "history united states". Another query needs only a rerun of `run_query.sh`.
 - TODO: limitations from Problem 1 runs.
