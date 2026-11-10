@@ -1,0 +1,8 @@
+openjdk version "11.0.33" 2026-10-20
+OpenJDK Runtime Environment Temurin-11.0.33+10 (build 11.0.33+10)
+OpenJDK 64-Bit Server VM Temurin-11.0.33+10 (build 11.0.33+10, mixed mode)
+Hadoop 3.4.3
+Linux 6.18.54.1-microsoft-standard-WSL2 x86_64
+Model name:                              AMD Ryzen 9 6900HS with Radeon Graphics
+CPUs: 16
+Mem:           7.4Gi       1.0Gi       5.0Gi       4.2Mi       1.5Gi       6.4Gi
