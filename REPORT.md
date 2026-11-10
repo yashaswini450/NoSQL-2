@@ -78,8 +78,32 @@ cleanup():                                                          # single red
 - *Single reducer:* required for a global top-10; the candidate set is at most N documents, so it fits in memory.
 - *Output:* score printed with 6 decimals.
 
-### 2.4 Problems 1(a)–(d)
-TODO (P1/P2): mapper/reducer logic, pseudocode, pair/stripe conventions, local aggregation strategy.
+### 2.4 Problems 1(a)–(d) (`Top50Words.java`, `WordAssociationPairs.java`)
+
+**Problem 1(a) — Frequent-word extraction (`Top50Words.java`):**
+- **Preprocessing & DistributedCache:** `stopwords.txt` is distributed via Hadoop's `DistributedCache` (`job.addCacheFile(...)`). Each line is lowercased and split on `[^a-z0-9]+`, dropping empty tokens and stop words (`stopwords.contains(token)`), identical to the pre-stemming step of `TextPreprocessor.java` in Problem 2.
+- **Aggregation & Tie-breaking:** `LongSumCombiner` aggregates word counts per map split. A single reducer (`Top50Reducer`) accumulates corpus totals and in `cleanup()` sorts all non-stop words by `(frequency DESC, word ASC)` (lexicographical tie-breaker), emitting the top 50 words as `WORD<TAB>FREQUENCY` (`top50_words.tsv`).
+
+```
+setup():   stopwords ← load cached stopwords.txt into HashSet
+map(k, line):
+    for token in line.toLowerCase().split("[^a-z0-9]+"):
+        if token != "" and token ∉ stopwords: emit(token, 1)
+combine(w, counts): emit(w, Σ counts)
+reduce(w, counts):  wordCounts[w] ← Σ counts
+cleanup():
+    sort wordCounts by (count DESC, w ASC)
+    for first 50 entries (w, c): emit(w, c)
+```
+
+**Problem 1(b) — Word association using the Pairs approach (`WordAssociationPairs.java`):**
+- **Vocabulary & Window ($d = 2$):** Both `stopwords.txt` and `top50_words.tsv` are loaded via `DistributedCache`. For each record's filtered non-stop token stream $t_0, t_1, \dots, t_{n-1}$, whenever $u = t_i \in V_{50}$, we inspect neighbours $v = t_j$ within window distance $d = 2$ ($1 \le |j - i| \le 2$).
+- **Pair & Denominator Convention:** Pairs $(u, v)$ are treated as **ordered** pairs where $u \in V_{50}$, $v \in V_{50}$, and $u \neq v$ (excluding self-pairs). For each focal word $u$, the denominator $\sum_{w \in V_{50}, w \neq u} C(u, w)$ is the marginal sum of co-occurrence counts of $u$ with all other Top-50 vocabulary words within distance $d = 2$. The conditional score is $P(v \mid u) = \frac{C(u, v)}{\sum_w C(u, w)}$.
+- **Local Aggregation Modes (Problem 1d i–ii):**
+  - *Without local aggregation (`false`/`none`):* Emits `(u\tv, 1)` inside the inner loop for every co-occurrence (`1,540,824` intermediate records on full corpus).
+  - *Map-function level (`function`):* Aggregates pair counts inside a per-record `HashMap<String, Long>` and flushes at the end of `map()` (`674,998` intermediate records, $-56.2\%$).
+  - *Map-class level (`true`/`class`):* Maintains an in-mapper `HashMap<String, Long>` across the split, flushes once in `Mapper.cleanup()` (then clears state to prevent double-counting), and enables `PairsCombiner` (`2,428` unique pairs per split, $-99.84\%$).
+- **Problems 1(c)–(d) (Stripes & Scalability):** TODO (P2).
 
 ## 3. Correctness checks
 
@@ -143,7 +167,9 @@ DOC_ID in a posting list; every TF ≥ 1; raw-text cross-check; `grep` hand chec
 the 50-article set). Details in `Problem2a_Report.md`.
 
 ### 3.3 Problem 1
-TODO (P1/P2): stop words absent from top-50, Pairs vs Stripes `diff`.
+- **Stop-word verification (1a):** Checked all 50 terms in `top50_words.tsv` against `stopwords.txt` (355 entries); 0 stop words appear in `top50_words.tsv`. Top 5 corpus tokens: `apos` (273,057), `quot` (267,968), `s` (207,334), `http` (79,108), `1` (77,032).
+- **Pairs co-occurrence & local-aggregation consistency (1b):** Verified that `WordAssociationPairs` produces identical output (`diff -u` clean across all 250 rows in `pairs_top5.tsv`) across `none`, `function`, and `class` local-aggregation modes, and that raw co-occurrence counts are symmetric ($C(u, v) = C(v, u)$, e.g. $C(\text{united}, \text{states}) = C(\text{states}, \text{united}) = 21,734$, while $P(\text{states} \mid \text{united}) = 0.664059$ and $P(\text{united} \mid \text{states}) = 0.685507$ due to different marginal denominators).
+- **Pairs vs Stripes `diff` (1c):** TODO (P2).
 
 ## 4. Performance evaluation
 - Problem 1(d): TODO (P2) — runtime table, median of 3 runs for 10/40/100 %, mapper output records/bytes, plot, trend analysis.

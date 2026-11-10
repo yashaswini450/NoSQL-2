@@ -76,16 +76,11 @@ public class Top50Words {
 		@Override
 		public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
 			String line = value.toString().toLowerCase();
-			String[] rawTokens = line.split("[^a-z0-9']+");
-			for (String raw : rawTokens) {
-				if (raw.isEmpty() || stopwords.contains(raw)) {
+			for (String token : line.split("[^a-z0-9]+")) {
+				if (token.isEmpty() || stopwords.contains(token)) {
 					continue;
 				}
-				String clean = raw.replaceAll("[^a-z0-9]", "");
-				if (clean.isEmpty() || stopwords.contains(clean)) {
-					continue;
-				}
-				word.set(clean);
+				word.set(token);
 				context.write(word, ONE);
 			}
 		}

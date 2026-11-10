@@ -124,18 +124,14 @@ public class WordAssociationPairs {
 		@Override
 		public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
 			String line = value.toString().toLowerCase(Locale.ROOT);
-			String[] rawTokens = line.split("[^a-z0-9']+");
+			String[] rawTokens = line.split("[^a-z0-9]+");
 
 			List<String> tokens = new ArrayList<String>(rawTokens.length);
-			for (String raw : rawTokens) {
-				if (raw.isEmpty() || stopwords.contains(raw)) {
+			for (String token : rawTokens) {
+				if (token.isEmpty() || stopwords.contains(token)) {
 					continue;
 				}
-				String clean = raw.replaceAll("[^a-z0-9]", "");
-				if (clean.isEmpty() || stopwords.contains(clean)) {
-					continue;
-				}
-				tokens.add(clean);
+				tokens.add(token);
 			}
 
 			int n = tokens.size();
