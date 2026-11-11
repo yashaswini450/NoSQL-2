@@ -1,7 +1,7 @@
-\documentclass[11pt,a4paper]{article}
+\documentclass[10pt,a4paper]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
-\usepackage[margin=2.2cm]{geometry}
+\usepackage[margin=1.9cm]{geometry}
 \usepackage{lmodern}
 \usepackage{amsmath,amssymb}
 \usepackage{booktabs,longtable,array,tabularx}
@@ -11,7 +11,12 @@
 \usepackage{listings}
 \usepackage[hidelinks]{hyperref}
 \usepackage{enumitem}
-\setlist{itemsep=1pt,topsep=3pt}
+\usepackage{multicol}
+\setlength{\parskip}{2pt}
+\setlength{\abovecaptionskip}{3pt}
+\setlength{\belowcaptionskip}{0pt}
+\raggedbottom
+\setlist{itemsep=0pt,topsep=2pt,parsep=0pt}
 
 \newcommand{\code}[1]{\texttt{\detokenize{#1}}}
 \newcommand{\todo}[1]{\textcolor{red}{\textbf{[#1]}}}
@@ -30,25 +35,25 @@
 
 \title{\textbf{DAS 839 -- NoSQL Systems, Assignment II}\\[2pt]
 \large MapReduce: Word Association, Document Indexing, Query Retrieval and Scalability}
-\author{Group members: Yashaswini (Person~1), Person~2, Shrey (Person~3), Abhinav Ravi (Person~4)\\
-\todo{add full names and roll numbers}\\[2pt]
-Repository: \url{https://github.com/yashaswini450/NoSQL-2}}
-\date{November 2026}
+\author{%
+\begin{tabular}{@{}ccc@{}}
+KM Yashaswini (BT2024224) & Vishal Reddy Kondakindi (BT2024102) & Shrey Modi (BT2024125)\
+{\small Person 1} & {\small Person 2} & {\small Person 3}\[3pt]
+\multicolumn{3}{c}{Abhinav Ravi (\todo{BT2024xxx}) \small --- Person 4}\
+\end{tabular}\[3pt]
+{\small Repository: \url{https://github.com/yashaswini450/NoSQL-2}}}
+\date{}
 
 \begin{document}
-\maketitle
+\setlength{\abovedisplayskip}{3pt}\setlength{\belowdisplayskip}{3pt}
+\vspace{-4pt}\maketitle\vspace{-10pt}
 
-\begin{abstract}
-\noindent We implemented all parts of the assignment on Apache Hadoop~3.4.3 and ran every
-experiment on the full corpus \code{Wikipedia-EN-20120601_ARTICLES} (10{,}000 articles, 166{,}222{,}646 bytes).
-Problem~1 covers the top-50 frequent words, word association with the Pairs and Stripes approaches
-(window $d=2$), and a scalability study of four configurations on nested subsets (10/20/40/80/100\%).
-Problem~2 covers stemmed document frequency, a top-100 inverted index, and TF--IDF query retrieval.
-All numbers in this report come from our own runs; the raw logs and outputs are in the repository.
+\begin{abstract}\small\noindent
+All parts were implemented on Apache Hadoop 3.4.3 and run on the full corpus \code{Wikipedia-EN-20120601_ARTICLES} (10{,}000 articles).
+Problem~1: top-50 frequent words, Pairs and Stripes word association ($d=2$), and a scalability study of four configurations on nested subsets (10--100\%).
+Problem~2: stemmed document frequency, top-100 inverted index, and TF--IDF query retrieval. All numbers come from our own runs; logs and outputs are in the repository.
 \end{abstract}
 
-\tableofcontents
-\newpage
 
 %=====================================================================
 \section{Environment and setup}
@@ -370,7 +375,7 @@ Subset & Docs & MiB & Pairs-NoAgg (s) & Pairs-Agg (s) & Stripes-NoAgg (s) & Stri
 \end{table}
 
 \begin{figure}[H]\centering
-\includegraphics[width=0.85\textwidth]{scalability.png}
+\includegraphics[width=0.62\textwidth]{scalability.png}
 \caption{Input size vs.\ runtime for the four configurations (\code{scalability.png}).}
 \end{figure}
 
@@ -423,24 +428,24 @@ The 2(b) input is only the 5.4~MB index (100 lines), which is why retrieval is c
 %=====================================================================
 \section{Reproducibility}
 %=====================================================================
-\subsection{Layout}
-\begin{table}[H]\centering\small
-\begin{tabularx}{\textwidth}{@{}l X@{}}
+\subsection{Repository layout}
+\begin{table}[H]\centering\footnotesize
+\begin{tabular}{@{}p{0.43\textwidth}p{0.5\textwidth}@{}}
 \toprule
-File & Content\\
+Files & Content\
 \midrule
-\code{Top50Words.java}, \code{top50_words.tsv} & 1(a) code and output (\code{WORD<TAB>FREQUENCY})\\
-\code{WordAssociationPairs.java}, \code{pairs_top5.tsv} & 1(b) code and output (\code{u,v,C(u,v),P(v|u)})\\
-\code{WordAssociationStripes.java}, \code{stripes_top5.tsv} & 1(c) code and output (identical to Pairs)\\
-\code{prepare_subsets.sh}, \code{run_scalability.sh}, \code{plot_scalability.py} & 1(d) subsets, benchmark, plot\\
-\code{scalability_results.csv}, \code{scalability_runs.csv}, \code{subsets.tsv}, \code{scalability.png} & 1(d) results\\
-\code{DocumentFrequency.java}, \code{InvertedIndex.java}, \code{TextPreprocessor.java}, \code{WholeDocumentInputFormat.java} & 2(a) code\\
-\code{results_full/} (\code{df_all.tsv}, \code{top100_df.tsv}, \code{inverted_index.tsv}, \code{doc_count.txt}, logs, checks) & 2(a) outputs on the full corpus (\code{results_50/}: test set)\\
-\code{QueryRetrieval.java}, \code{run_query.sh}, \code{verify_retrieval.py} & 2(b) code, runner, independent check\\
-\code{query_top10.tsv}, \code{results_2b/} & 2(b) output, worked scores, run log\\
-\code{problem_1.txt}, \code{problem_2.txt} & run instructions (reproduced below)\\
+\code{Top50Words.java}, \code{top50_words.tsv} & 1(a) code and output\
+\code{WordAssociationPairs.java}, \code{pairs_top5.tsv} & 1(b) code and output\
+\code{WordAssociationStripes.java}, \code{stripes_top5.tsv} & 1(c) code and output\
+\code{prepare_subsets.sh}, \code{run_scalability.sh}, \code{plot_scalability.py} & 1(d) scripts\
+\code{scalability_results.csv}, \code{scalability_runs.csv}, \code{subsets.tsv}, \code{scalability.png} & 1(d) results\
+\code{DocumentFrequency.java}, \code{InvertedIndex.java}, \code{TextPreprocessor.java}, \code{WholeDocumentInputFormat.java} & 2(a) code\
+\code{results_full/}, \code{results_50/} & 2(a) outputs, logs, checks (full / test set)\
+\code{QueryRetrieval.java}, \code{run_query.sh}, \code{verify_retrieval.py} & 2(b) code, runner, check\
+\code{query_top10.tsv}, \code{results_2b/} & 2(b) output, worked scores, run log\
+\code{problem_1.txt}, \code{problem_2.txt} & run instructions (reproduced below)\
 \bottomrule
-\end{tabularx}
+\end{tabular}
 \end{table}
 
 \subsection{Main commands}
@@ -458,11 +463,16 @@ python3 verify_retrieval.py results_full "histori,state,unit" --explain 3
 \end{lstlisting}
 Fixed configuration: window $d=2$; one reducer per job; Top-K 50 and 100; split size limit 64~MB for 2(a); \code{-Xmx1g} for the benchmark.
 
-\subsection{Contents of \texttt{problem\_1.txt}}
-{\small\lstinputlisting[basicstyle=\ttfamily\scriptsize]{problem_1.txt}}
-
-\subsection{Contents of \texttt{problem\_2.txt}}
-{\small\lstinputlisting[basicstyle=\ttfamily\scriptsize]{problem_2.txt}}
+\subsection{Contents of \texttt{problem\_1.txt} and \texttt{problem\_2.txt}}
+\lstset{frame=none,basicstyle=\fontsize{5.6}{6.6}\ttfamily,xleftmargin=0pt,xrightmargin=0pt}
+\begin{multicols}{2}
+\noindent\textbf{\small problem\_1.txt}\par\smallskip
+\lstinputlisting{problem_1.txt}
+\columnbreak
+\noindent\textbf{\small problem\_2.txt}\par\smallskip
+\lstinputlisting{problem_2.txt}
+\end{multicols}
+\lstset{frame=single,basicstyle=\ttfamily\footnotesize}
 
 %=====================================================================
 \section{Limitations}
