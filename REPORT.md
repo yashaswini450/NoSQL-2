@@ -12,7 +12,7 @@
 | Library | `opennlp-tools-1.9.3.jar` (`PorterStemmer`) |
 | Dataset | `Wikipedia-EN-20120601_ARTICLES.tar.gz` (a plain tar despite the name): **10,000 articles**, 166,222,646 bytes, file `<id>.txt`. Test set: `Wikipedia-50-ARTICLES.tar` (50 articles) |
 | Stop words | `stopwords.txt` (355 non-empty entries) |
-| Machines (standalone mode, WSL2 Ubuntu, Java 11) | 1(d) benchmark (Person 2): Ryzen 7 7735HS, 16 CPUs, 7.4 GiB, `-Xmx1g`. 2(a) (Person 3): Ryzen 9 6900HS, 16 CPUs, 7.4 GiB. 2(b) (Person 4): i5-12450H, 12 CPUs, ~7 GiB. TODO (Person 1): machine of the original 1(a)/1(b) run |
+| Machines (standalone mode, Java 11, Hadoop 3.4.3) | 1(a)/1(b) (Person 1): Apple M4, 10 cores, 16 GiB, macOS. 1(d) benchmark (Person 2): Ryzen 7 7735HS, 16 CPUs, 7.4 GiB, WSL2, `-Xmx1g`. 2(a) (Person 3): Ryzen 9 6900HS, 16 CPUs, 7.4 GiB, WSL2. 2(b) (Person 4): i5-12450H, 12 CPUs, ~7 GiB, WSL2 |
 | Nested subsets (Problem 1d) | Sorted file names (byte order), first 10/20/40/80/100 % of files (1,000/2,000/4,000/8,000/10,000), so S10 ⊂ S20 ⊂ … ⊂ S100; written in order into ~16 MiB shards; sizes in `subsets.tsv` |
 
 Dataset preparation: `tar -xf` both archives; DOC_ID = file name without `.txt`.
@@ -203,5 +203,5 @@ Commands, paths and parameters are in `problem_1.txt` and `problem_2.txt` (both 
 - Score uses raw TF with no length normalisation, so long documents dominate (§3.1).
 - All runs are standalone-mode on one machine; no HDFS/YARN overheads were measured.
 - No instructor-supplied query was available; results use our own query "history united states". Another query needs only a rerun of `run_query.sh`.
-- The three experiment groups ran on different laptops, so timings are comparable only within one experiment; the scalability study is from one machine in standalone mode (no HDFS/YARN/network effects).
+- The four parts ran on four different laptops, so timings are comparable only within one experiment; the scalability study is from one machine in standalone mode (no HDFS/YARN/network effects).
 - 20 % / 80 % subsets and all Problem 2 timings are single runs.

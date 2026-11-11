@@ -60,23 +60,21 @@ Problem~2: stemmed document frequency, top-100 inverted index, and TF--IDF query
 %=====================================================================
 \subsection{Software and hardware}
 Everything ran in standalone (local) Hadoop mode: LocalJobRunner on the local filesystem, no HDFS and
-no YARN. The jobs were run on three different laptops (each teammate ran their own part), so the
+no YARN. The jobs were run on four different laptops (each teammate ran their own part), so the
 hardware is listed per part. Timings are therefore only comparable \emph{within} one experiment.
 
-\begin{table}[H]\centering\small
-\begin{tabularx}{\textwidth}{@{}l X X X@{}}
+\begin{table}[H]\centering\footnotesize
+\begin{tabularx}{\textwidth}{@{}p{2.5cm}p{3.5cm}p{3.5cm}p{1.9cm}X@{}}
 \toprule
- & Problem 1(d) benchmark (Person~2) & Problem 2(a) (Person~3) & Problem 2(b) (Person~4)\\
+Part & OS & CPU & RAM & Java / Hadoop\\
 \midrule
-OS & Windows~11, WSL2 Ubuntu, Linux 6.6.87.2 & Windows~11, WSL2 Ubuntu, Linux 6.18.54.1 & Windows~11, WSL2 Ubuntu, Linux 6.18.33.2\\
-CPU & AMD Ryzen 7 7735HS, 16 logical CPUs & AMD Ryzen 9 6900HS, 16 logical CPUs & Intel Core i5-12450H, 12 logical CPUs\\
-RAM seen by WSL & 7.4~GiB & 7.4~GiB & about 7~GiB\\
-Java & Corretto OpenJDK 11.0.33 & Temurin OpenJDK 11.0.33 & OpenJDK 11.0.32\\
-Hadoop & 3.4.3 standalone & 3.4.3 standalone & 3.4.3 standalone\\
-JVM heap & \code{-Xmx1g} & default & default\\
+1(a), 1(b) (Person~1) & macOS, Darwin 27.0.0 (arm64) & Apple M4, 10 cores & 16~GiB & OpenJDK 11.0.33, Hadoop 3.4.3\\
+1(c), 1(d) benchmark (Person~2) & Windows~11, WSL2 Ubuntu, Linux 6.6.87.2 & AMD Ryzen 7 7735HS, 16 logical CPUs & 7.4~GiB (WSL) & Corretto OpenJDK 11.0.33, Hadoop 3.4.3, \code{-Xmx1g}\\
+2(a) (Person~3) & Windows~11, WSL2 Ubuntu, Linux 6.18.54.1 & AMD Ryzen 9 6900HS, 16 logical CPUs & 7.4~GiB (WSL) & Temurin OpenJDK 11.0.33, Hadoop 3.4.3\\
+2(b) (Person~4) & Windows~11, WSL2 Ubuntu, Linux 6.18.33.2 & Intel Core i5-12450H, 12 logical CPUs & about 7~GiB (WSL) & OpenJDK 11.0.32, Hadoop 3.4.3\\
 \bottomrule
 \end{tabularx}
-\caption{Execution environments. \todo{Person~1: add the machine used for the original 1(a)/1(b) run; Person~2 reproduced 1(a)/1(b) on the machine in column 1 and all benchmark numbers come from it.}}
+\caption{Execution environments (all in standalone mode: LocalJobRunner, local filesystem). Person~2 also reproduced 1(a)/1(b) on the machine in row~2; all benchmark timings come from it.}
 \end{table}
 
 Other libraries: \code{opennlp-tools-1.9.3.jar} (\code{PorterStemmer}, Problem~2), Python~3 with
@@ -478,7 +476,7 @@ Fixed configuration: window $d=2$; one reducer per job; Top-K 50 and 100; split 
 \section{Limitations}
 %=====================================================================
 \begin{itemize}
- \item \textbf{Different machines.} The three experiment groups ran on three laptops (Table~1). Timings are comparable only within one experiment; the scalability benchmark (the only timing study) comes entirely from one machine, in standalone mode, so HDFS/YARN effects, network shuffle and multi-node scaling were not measured.
+ \item \textbf{Different machines.} The four parts ran on four different laptops (Table~1). Timings are comparable only within one experiment; the scalability benchmark (the only timing study) comes entirely from one machine, in standalone mode, so HDFS/YARN effects, network shuffle and multi-node scaling were not measured.
  \item \textbf{Single runs where allowed.} 20\% and 80\% subsets and all Problem~2 timings are single runs. The 80\% Pairs-NoAgg point is slower than the 100\% median, which shows the noise level of such single measurements.
  \item \textbf{Non-content tokens.} The agreed tokenizer does not filter numbers, single letters, HTML-entity residue (\code{apos}, \code{quot}), URL parts (\code{http}, \code{www}) or interlanguage prefixes (\code{fr}, \code{pt}\dots). About 45 of the 100 top-DF terms and several top-50 words are such tokens. The official stop-word list also lacks words such as ``this'' and ``us''. We kept the official list and the agreed pipeline unchanged so that all parts stay consistent; filtering would have to be applied to indexing and queries together.
  \item \textbf{Retrieval scope.} 2(b) searches only the 100 highest-DF terms indexed in 2(a); other query terms are ignored, so a query made only of rarer terms returns nothing. This follows the assignment's definition of the index.
