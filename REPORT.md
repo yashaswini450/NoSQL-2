@@ -1,6 +1,6 @@
 # DAS 839 NoSQL Systems — Assignment 2 Report
 
-> Draft status: Problem 2 sections are written from real runs. Parts marked **TODO (P1/P2)** wait for Person 1/2 results.
+> The full report with figures is `REPORT.tex` / `REPORT.pdf`; this file is the Markdown version. All numbers are from our own runs.
 > No instructor-supplied query had been announced when this was written, so we used our own multi-term query "history united states". The pipeline accepts any query; rerun `./run_query.sh results_full "<query>"` if one is announced.
 
 ## 1. Environment and setup
@@ -12,8 +12,8 @@
 | Library | `opennlp-tools-1.9.3.jar` (`PorterStemmer`) |
 | Dataset | `Wikipedia-EN-20120601_ARTICLES.tar.gz` (a plain tar despite the name): **10,000 articles**, 166,222,646 bytes, file `<id>.txt`. Test set: `Wikipedia-50-ARTICLES.tar` (50 articles) |
 | Stop words | `stopwords.txt` (355 non-empty entries) |
-| Machine | TODO (fill from `results_full/environment.txt` of Person 3, and Person 2's machine if different) |
-| Nested subsets (Problem 1d) | TODO (P2) |
+| Machines (standalone mode, WSL2 Ubuntu, Java 11) | 1(d) benchmark (Person 2): Ryzen 7 7735HS, 16 CPUs, 7.4 GiB, `-Xmx1g`. 2(a) (Person 3): Ryzen 9 6900HS, 16 CPUs, 7.4 GiB. 2(b) (Person 4): i5-12450H, 12 CPUs, ~7 GiB. TODO (Person 1): machine of the original 1(a)/1(b) run |
+| Nested subsets (Problem 1d) | Sorted file names (byte order), first 10/20/40/80/100 % of files (1,000/2,000/4,000/8,000/10,000), so S10 ⊂ S20 ⊂ … ⊂ S100; written in order into ~16 MiB shards; sizes in `subsets.tsv` |
 
 Dataset preparation: `tar -xf` both archives; DOC_ID = file name without `.txt`.
 Full commands: see `problem_1.txt` and `problem_2.txt`.
@@ -31,7 +31,7 @@ DistributedCache in 2(a). Non-ASCII letters act as separators.
 job 2: top-100 with a TreeSet ordered by DF desc, TERM asc) and `InvertedIndex` (per-document in-mapper TF for
 the top-100 terms, reducer writes `TERM<TAB>DOC_ID:TF,...` sorted numerically by DOC_ID). Input uses a
 `WholeDocumentInputFormat` (one record per article, files combined into ≤64 MB splits → 3 map tasks).
-Details, counters and timings: `Problem2a_Report.md` (TODO: merge into this report).
+Details, counters and timings: `Problem2a_Report.md` and the LaTeX report.
 Tie handling: DF desc, then TERM ascending.
 
 ### 2.3 Problem 2(b) — Query-based retrieval (`QueryRetrieval.java`)
@@ -102,8 +102,11 @@ cleanup():
 - **Local Aggregation Modes (Problem 1d i–ii):**
   - *Without local aggregation (`false`/`none`):* Emits `(u\tv, 1)` inside the inner loop for every co-occurrence (`1,540,824` intermediate records on full corpus).
   - *Map-function level (`function`):* Aggregates pair counts inside a per-record `HashMap<String, Long>` and flushes at the end of `map()` (`674,998` intermediate records, $-56.2\%$).
-  - *Map-class level (`true`/`class`):* Maintains an in-mapper `HashMap<String, Long>` across the split, flushes once in `Mapper.cleanup()` (then clears state to prevent double-counting), and enables `PairsCombiner` (`2,428` unique pairs per split, $-99.84\%$).
-- **Problems 1(c)–(d) (Stripes & Scalability):** TODO (P2).
+  - *Map-class level (`true`/`class`):* Maintains an in-mapper `HashMap<String, Long>` across the split, flushes once in `Mapper.cleanup()` (then clears state to prevent double-counting), and enables `PairsCombiner` (`23,526` records on the full corpus (10 map tasks, at most 2,450 distinct ordered pairs each; 2,428 distinct pairs overall), $-98.5\%$).
+
+**Problem 1(c) — Stripes (`WordAssociationStripes.java`):** same tokenization, window, vocabulary and ordered-pair convention as Pairs. For each focal occurrence u in V50 the mapper builds a stripe (`MapWritable`, neighbour → count). Without aggregation each non-empty stripe is emitted at once; with aggregation one stripe per word is kept per split and emitted in `cleanup()` (state bounded by 50 words). The reducer merges stripes, computes the denominator and P(v|u) as in Pairs and writes the same schema.
+
+**Problem 1(d) — Scalability:** `prepare_subsets.sh` builds nested subsets (sorted file names, first 10/20/40/80/100 %); `run_scalability.sh` runs the 4 configurations (Pairs/Stripes × no/with local aggregation), d = 2, 3 runs at 10/40/100 % (median reported), 1 run at 20/80 %; time = wall clock of the Hadoop job; mapper output records/bytes from job counters; `plot_scalability.py` draws the plot.
 
 ## 3. Correctness checks
 
@@ -169,18 +172,26 @@ the 50-article set). Details in `Problem2a_Report.md`.
 ### 3.3 Problem 1
 - **Stop-word verification (1a):** Checked all 50 terms in `top50_words.tsv` against `stopwords.txt` (355 entries); 0 stop words appear in `top50_words.tsv`. Top 5 corpus tokens: `apos` (273,057), `quot` (267,968), `s` (207,334), `http` (79,108), `1` (77,032).
 - **Pairs co-occurrence & local-aggregation consistency (1b):** Verified that `WordAssociationPairs` produces identical output (`diff -u` clean across all 250 rows in `pairs_top5.tsv`) across `none`, `function`, and `class` local-aggregation modes, and that raw co-occurrence counts are symmetric ($C(u, v) = C(v, u)$, e.g. $C(\text{united}, \text{states}) = C(\text{states}, \text{united}) = 21,734$, while $P(\text{states} \mid \text{united}) = 0.664059$ and $P(\text{united} \mid \text{states}) = 0.685507$ due to different marginal denominators).
-- **Pairs vs Stripes `diff` (1c):** TODO (P2).
+- **Pairs vs Stripes `diff` (1c):** `diff pairs_top5.tsv stripes_top5.tsv` is empty (re-checked on merged `main`); in the benchmark all four configurations produced identical output at every size, and an independent recount from the raw articles matched.
 
 ## 4. Performance evaluation
-- Problem 1(d): TODO (P2) — runtime table, median of 3 runs for 10/40/100 %, mapper output records/bytes, plot, trend analysis.
+- Problem 1(d), median of 3 runs (10/40/100 %), 1 run (20/80 %), seconds (Person 2's machine):
+
+| Subset | MiB | Pairs-NoAgg | Pairs-Agg | Stripes-NoAgg | Stripes-Agg |
+|---|---:|---:|---:|---:|---:|
+| 10 % | 10.51 | 7.64 | 7.70 | 8.70 | 7.77 |
+| 20 % | 26.37 | 11.70 | 10.84 | 12.95 | 10.94 |
+| 40 % | 61.72 | 17.88 | 16.33 | 19.77 | 16.17 |
+| 80 % | 124.91 | 35.58 | 28.51 | 33.71 | 27.30 |
+| 100 % | 158.53 | 34.27 | 30.49 | 38.44 | 30.24 |
+
+  Mapper output on the full corpus (records / bytes): Pairs-NoAgg 1,540,824 / 24,567,766; Pairs-Agg 23,526 / 392,606; Stripes-NoAgg 1,169,590 / 31,272,291; Stripes-Agg 500 / 342,149. Plot: `scalability.png`. Input grows 15.1× while runtime grows 3.9–4.5× (fixed start-up cost); local aggregation cuts mapper output by orders of magnitude and runtime by 11 % (Pairs) / 21 % (Stripes) at 100 %; Stripes-NoAgg emits fewer records but more bytes than Pairs-NoAgg. The 80 % cells are single runs (the 80 % Pairs-NoAgg value exceeds the 100 % median, which is run-to-run noise).
 - Problem 2(a), single runs, standalone mode (Person 3): DF + Top-100 20.08 s, inverted index 11.97 s (full corpus);
   3.73 s / 2.41 s (50 articles). The combiner cut DF shuffle records from 7.15 M to 0.72 M.
-- Problem 2(b): TODO — fill the wall-clock of the query job on the full corpus (single run, 5.4 MB index input);
-  not part of the required scalability study.
+- Problem 2(b): 12.4 s end-to-end (including `javac` + `jar`) on the full corpus index (5.4 MB input, 100 lines, 20,454 map output records, 9,018 matching documents); single run, not part of the scalability study.
 
 ## 5. Reproducibility
-Commands, paths and parameters: `problem_1.txt` (TODO P2) and `problem_2.txt` (included in this repo).
-TODO at the end: paste both files verbatim here.
+Commands, paths and parameters are in `problem_1.txt` and `problem_2.txt` (both in the repository root and reproduced verbatim in `REPORT.pdf` section 5).
 
 ## 6. Limitations
 - 2(b) only searches the **100 highest-DF terms** that 2(a) indexes: any other query term is ignored, so a query
@@ -192,4 +203,5 @@ TODO at the end: paste both files verbatim here.
 - Score uses raw TF with no length normalisation, so long documents dominate (§3.1).
 - All runs are standalone-mode on one machine; no HDFS/YARN overheads were measured.
 - No instructor-supplied query was available; results use our own query "history united states". Another query needs only a rerun of `run_query.sh`.
-- TODO: limitations from Problem 1 runs.
+- The three experiment groups ran on different laptops, so timings are comparable only within one experiment; the scalability study is from one machine in standalone mode (no HDFS/YARN/network effects).
+- 20 % / 80 % subsets and all Problem 2 timings are single runs.
