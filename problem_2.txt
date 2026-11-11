@@ -71,7 +71,7 @@ PART 2(b)  -  Query-based retrieval (TF-IDF)
 
  Definitions
    IDF(t)  = ln( N / DF(t) + 1 )   (natural log; DF(t) read from top100_df.tsv)
-   S(D,Q)  = sum over t in Q ∩ D of TF(t,D) * IDF(t)
+   S(D,Q)  = sum over t in Q intersect D of TF(t,D) * IDF(t)
    Q       = SET of stemmed, non-stop query terms: repeated query terms are collapsed (counted once).
    Ranking = score descending; ties -> DOC_ID ascending, compared NUMERICALLY.
    Query terms that are stop words vanish in preprocessing; terms not among the indexed top-100

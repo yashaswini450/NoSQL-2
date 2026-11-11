@@ -28,7 +28,7 @@ See [`TEAM_TASK_DIVISION.md`](./TEAM_TASK_DIVISION.md) for detailed per-teammate
 | **Person 1 (Yashaswini)** | `feature/problem1-top50-and-pairs` | **Problem 1(a) & 1(b)** (6 Marks) | `Top50Words.java`, `WordAssociationPairs.java`, `WordCount2.java`, `top50_words.tsv`, `pairs_top5.tsv` |
 | **Person 2 (Teammate 2)** | `feature/problem1-stripes-and-scalability` | **Problem 1(c) & 1(d)** (8 Marks) | `WordAssociationStripes.java`, `prepare_subsets.sh`, `run_scalability.sh`, `stripes_top5.tsv`, `scalability_results.csv`, `problem_1.txt` |
 | **Person 3 (Teammate 3)** | `feature/problem2-df-and-inverted-index` | **Problem 2(a)** (5 Marks) | `PosTag.java`, `DocumentFrequency.java`, `InvertedIndex.java`, `top100_df.tsv`, `inverted_index_sample.tsv` |
-| **Person 4 (Teammate 4)** | `feature/problem2-query-retrieval-and-report` | **Problem 2(b) & Report** (7 Marks + Report) | `QueryRetrieval.java`, `query_top10.tsv`, `problem_2.txt`, `REPORT.md` |
+| **Person 4 (Teammate 4)** | `feature/problem2-query-retrieval-and-report` | **Problem 2(b) & Report** (7 Marks + Report) | `QueryRetrieval.java`, `query_top10.tsv`, `problem_2.txt`, `REPORT.tex` / `REPORT.pdf` |
 
 ---
 
@@ -54,7 +54,7 @@ assignment-2/
 ├── QueryRetrieval.java               # [Problem 2b] TF-IDF query retrieval and Top-10 ranking
 ├── problem_1.txt                     # Reproducibility & execution steps for Problem 1
 ├── problem_2.txt                     # Reproducibility & execution steps for Problem 2
-└── REPORT.md                         # Comprehensive final report
+├── REPORT.tex / REPORT.pdf           # Comprehensive final report (LaTeX source + PDF)
 ```
 
 ---
