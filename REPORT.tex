@@ -36,12 +36,12 @@
 \title{\textbf{DAS 839 -- NoSQL Systems, Assignment II}\\[2pt]
 \large MapReduce: Word Association, Document Indexing, Query Retrieval and Scalability}
 \author{%
-\begin{tabular}{@{}ccc@{}}
-KM Yashaswini (BT2024224) & Vishal Reddy Kondakindi (BT2024102) & Shrey Modi (BT2024125)\
-{\small Person 1} & {\small Person 2} & {\small Person 3}\[3pt]
-\multicolumn{3}{c}{Abhinav Ravi (BT2024239) \small --- Person 4}\
-\end{tabular}\[3pt]
-{\small Repository: \url{https://github.com/yashaswini450/NoSQL-2}}}
+\small
+\begin{tabular}{@{}cc@{\hspace{2.5em}}cc@{}}
+KM Yashaswini & BT2024224 (Person 1) & Vishal Reddy Kondakindi & BT2024102 (Person 2)\\
+Shrey Modi & BT2024125 (Person 3) & Abhinav Ravi & BT2024239 (Person 4)\\
+\end{tabular}\\[4pt]
+Repository: \url{https://github.com/yashaswini450/NoSQL-2}}
 \date{}
 
 \begin{document}
@@ -432,18 +432,18 @@ The 2(b) input is only the 5.4~MB index (100 lines), which is why retrieval is c
 \begin{table}[H]\centering\footnotesize
 \begin{tabular}{@{}p{0.43\textwidth}p{0.5\textwidth}@{}}
 \toprule
-Files & Content\
+Files & Content\\
 \midrule
-\code{Top50Words.java}, \code{top50_words.tsv} & 1(a) code and output\
-\code{WordAssociationPairs.java}, \code{pairs_top5.tsv} & 1(b) code and output\
-\code{WordAssociationStripes.java}, \code{stripes_top5.tsv} & 1(c) code and output\
-\code{prepare_subsets.sh}, \code{run_scalability.sh}, \code{plot_scalability.py} & 1(d) scripts\
-\code{scalability_results.csv}, \code{scalability_runs.csv}, \code{subsets.tsv}, \code{scalability.png} & 1(d) results\
-\code{DocumentFrequency.java}, \code{InvertedIndex.java}, \code{TextPreprocessor.java}, \code{WholeDocumentInputFormat.java} & 2(a) code\
-\code{results_full/}, \code{results_50/} & 2(a) outputs, logs, checks (full / test set)\
-\code{QueryRetrieval.java}, \code{run_query.sh}, \code{verify_retrieval.py} & 2(b) code, runner, check\
-\code{query_top10.tsv}, \code{results_2b/} & 2(b) output, worked scores, run log\
-\code{problem_1.txt}, \code{problem_2.txt} & run instructions (reproduced below)\
+\code{Top50Words.java}, \code{top50_words.tsv} & 1(a) code and output\\
+\code{WordAssociationPairs.java}, \code{pairs_top5.tsv} & 1(b) code and output\\
+\code{WordAssociationStripes.java}, \code{stripes_top5.tsv} & 1(c) code and output\\
+\code{prepare_subsets.sh}, \code{run_scalability.sh}, \code{plot_scalability.py} & 1(d) scripts\\
+\code{scalability_results.csv}, \code{scalability_runs.csv}, \code{subsets.tsv}, \code{scalability.png} & 1(d) results\\
+\code{DocumentFrequency.java}, \code{InvertedIndex.java}, \code{TextPreprocessor.java}, \code{WholeDocumentInputFormat.java} & 2(a) code\\
+\code{results_full/}, \code{results_50/} & 2(a) outputs, logs, checks (full / test set)\\
+\code{QueryRetrieval.java}, \code{run_query.sh}, \code{verify_retrieval.py} & 2(b) code, runner, check\\
+\code{query_top10.tsv}, \code{results_2b/} & 2(b) output, worked scores, run log\\
+\code{problem_1.txt}, \code{problem_2.txt} & run instructions (reproduced below)\\
 \bottomrule
 \end{tabular}
 \end{table}
